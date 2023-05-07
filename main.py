@@ -1,7 +1,13 @@
 from qg_botsdk import BOT, Model
+import sqlite3
+import yaml
 import holodex
 import restream
-import sqlite3
+
+file_path = 'config.yaml'
+
+with open(file_path, 'r') as f:
+    config = yaml.safe_load(f)
 
 
 def serach_key(user_id):
@@ -36,11 +42,7 @@ def edit_key(user_id, key):
 
 # 连接到数据库（如果数据库不存在，它将被创建）
 conn = sqlite3.connect('rtmp.db')
-
-# 创建一个游标对象，用于执行SQL语句
 cursor = conn.cursor()
-
-# 创建表格
 cursor.execute('''CREATE TABLE IF NOT EXISTS rtmp_key (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER,
@@ -50,8 +52,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS rtmp_key (
 conn.commit()
 cursor.close()
 conn.close()
-
-print("数据已成功更新。")
 
 # 创建全局会话对象检查消息是否来自于同一个对话
 
@@ -77,7 +77,13 @@ def deliver(data: Model.MESSAGE):   # 创建接收@消息事件的函数并绑�
             video_id = holodex.get_live_info(
                 session.live_id, session.response)
             data.reply('获取直播成功，正在启动直播')
-            restream.start_live(video_id)
+            user_key = serach_key(data.author.id)
+            if user_key:
+                data.reply('检测存在私信密钥，正在使用私信密钥')
+                restream.start_live(video_id, user_key)
+            else:
+                data.reply('未检测到私信密钥，请先私信机器人发送密钥')
+
         else:
             data.reply('有进行中的会话，输入"退出"退出会话')
     else:
@@ -104,8 +110,8 @@ def dm_function(data: Model.DIRECT_MESSAGE):  # 创建接收私信消息事件�
         data.reply('您输入的好像不是准确的直播密钥')
 
 
-bot = BOT(bot_id= < bot id >,
-          bot_token= < bot token >)  # 实例化SDK核心类
+bot = BOT(bot_id=config['bot_id'],
+          bot_token=config['bot_token'])  # 实例化SDK核心类
 bot.bind_msg(deliver)
 bot.bind_dm(on_dm_function=dm_function)
 bot.start()  # 开始运行机器人
