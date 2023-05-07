@@ -1,11 +1,19 @@
 import requests
 from datetime import datetime, timezone, timedelta
+import yaml
 
+file_path = 'config.yaml'
+
+with open(file_path, 'r') as f:
+    config = yaml.safe_load(f)
 
 headers = {
     "Accept": "application/json",
-    "X-APIKEY": < api_key >
+    "X-APIKEY": config['X-APIKEY']
 }
+
+ban_list = ['Dark_Souls', 'Residentevil', 'GTA', 'Outlast',
+            'Rainbow_Six', 'Yakuza', 'The_Evil_Within', 'Battlefield', 'Hitman', 'Ddlc', '7_days_to_die', 'Witcher3', 'Judgment', 'Dbd', 'Surgeon_simulator']
 
 
 def live(type, org):
